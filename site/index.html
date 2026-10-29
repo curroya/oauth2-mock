@@ -104,7 +104,7 @@ nav.top-links a:hover { color: var(--ink); }
   border-radius: 10px;
   padding: .5rem .5rem .5rem 1rem;
 }
-.command code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; background: none; padding: 0; font-size: .9rem; scrollbar-width: none; }
+.command code { flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere; background: none; padding: 0; font-size: .9rem; }
 .command code::before { content: "$ "; color: var(--ink-muted); }
 .copy {
   flex: none;
@@ -260,7 +260,9 @@ pre code { font-size: inherit; }
 footer { border-top: 1px solid var(--line); padding-block: 2rem 2.5rem; font-size: .9rem; color: var(--ink-muted); }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1rem 2rem; flex-wrap: wrap; }
 footer .made-by { display: flex; align-items: center; gap: .6rem; }
-footer svg { width: 22px; height: 22px; }
+footer svg { width: 22px; height: 22px; flex: none; }
+.hero-warning { margin: .75rem 0 0; color: var(--orange); font-size: .9rem; }
+.hero-warning strong { font-weight: 700; }
 
 .enter { animation: rise .8s var(--ease-out) both; }
 .enter-1 { animation-delay: .05s; }
@@ -330,10 +332,11 @@ footer svg { width: 22px; height: 22px; }
       <h1 class="enter enter-1">A real OpenID Connect provider, <em>small enough to forget about.</em></h1>
       <p class="lede enter enter-2">Authorization code with PKCE, signed RS256 ID tokens and a one-click sign-in page. Built for local development and end-to-end tests, where Google has no sandbox and Dex wants a password.</p>
       <div class="command enter enter-3">
-        <code>docker run --rm -p 5556:5556 curroya/oauth2-mock</code>
-        <button class="copy" type="button" data-copy="docker run --rm -p 5556:5556 curroya/oauth2-mock">Copy</button>
+        <code>docker run --rm -p 127.0.0.1:5556:5556 curroya/oauth2-mock</code>
+        <button class="copy" type="button" data-copy="docker run --rm -p 127.0.0.1:5556:5556 curroya/oauth2-mock">Copy</button>
       </div>
       <p class="after-command enter enter-4">Then point your client at <code>http://localhost:5556</code> with <code>local-client</code> / <code>local-secret</code>. <a href="#quick-start">More setups</a></p>
+      <p class="hero-warning enter enter-4"><strong>Do not use in production.</strong> Anyone who can reach it can sign in as any user, and its tokens can be forged. For testing and development only.</p>
     </div>
 
     <div class="preview enter enter-3" aria-label="Interactive preview of the sign-in page">
@@ -405,7 +408,7 @@ footer svg { width: 22px; height: 22px; }
       </div>
       <figure class="code-block">
         <figcaption>shell<button class="copy" type="button" data-copy-from="next">Copy</button></figcaption>
-<pre><code>docker run --rm -p 5556:5556 -e USERS=alice@example.test,bob@example.test curroya/oauth2-mock</code></pre>
+<pre><code>docker run --rm -p 127.0.0.1:5556:5556 -e USERS=alice@example.test,bob@example.test curroya/oauth2-mock</code></pre>
       </figure>
       <div class="code-pair">
         <figure class="code-block">
@@ -413,7 +416,7 @@ footer svg { width: 22px; height: 22px; }
 <pre><code><span class="token-key">services:</span>
   <span class="token-key">oidc:</span>
     <span class="token-key">image:</span> curroya/oauth2-mock
-    <span class="token-key">ports:</span> [<span class="token-string">"5556:5556"</span>]
+    <span class="token-key">ports:</span> [<span class="token-string">"127.0.0.1:5556:5556"</span>]
     <span class="token-key">environment:</span>
       <span class="token-key">ISSUER:</span> http://oidc:5556
       <span class="token-key">BROWSER_BASE_URL:</span> http://localhost:5556
@@ -501,7 +504,7 @@ await page.getByRole(<span class="token-string">'button'</span>, { name: <span c
   <div class="wrap">
     <span class="made-by">
       <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#004e89"/><g transform="translate(123.5 97) scale(1.325)"><path d="M100 8C50 8 12 46 12 96C12 160 100 232 100 232S188 160 188 96C188 46 150 8 100 8Z" fill="#fff"/><path d="M114 40L66 108H96L84 156L134 84H104Z" fill="#ff6b35"/></g></svg>
-      Made by Curro Ya. A test fixture: never expose it to a network you do not control.
+      <span>With love from the <a href="https://curroya.es">curroya.es</a> team: a simple way to find temporary jobs near you.</span>
     </span>
     <a href="https://github.com/curroya/oauth2-mock">Source on GitHub</a>
   </div>

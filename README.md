@@ -4,7 +4,12 @@
 
 A tiny OpenID Connect provider for local development and end-to-end tests: the authorization-code flow with PKCE, signed RS256 ID tokens, and a one-click sign-in page.
 
+> [!WARNING]
+> **Do not use in production.** Anyone who can reach oauth2-mock can sign in as any user without a password, and with the default `KEY_SEED` anyone can forge its ID tokens. It is for testing and development only. The examples publish it on `127.0.0.1` so only your machine can reach it.
+
 Site: <https://oss.curroya.es/oauth2-mock/>
+
+With love from the [curroya.es](https://curroya.es) team: a simple way to find temporary jobs near you.
 
 | | oauth2-mock | Dex | mock-oauth2-server (JVM) |
 |---|---|---|---|
@@ -17,7 +22,7 @@ Site: <https://oss.curroya.es/oauth2-mock/>
 ## Quick start
 
 ```bash
-docker run --rm -p 5556:5556 -e USERS=alice@example.test,bob@example.test curroya/oauth2-mock
+docker run --rm -p 127.0.0.1:5556:5556 -e USERS=alice@example.test,bob@example.test curroya/oauth2-mock
 ```
 
 Images for `linux/amd64` and `linux/arm64` are on [Docker Hub](https://hub.docker.com/r/curroya/oauth2-mock): `latest` follows `main`, and `vX.Y.Z` pins a release (see [Releases](#releases)).
@@ -84,7 +89,7 @@ OIDC clients compare `iss` byte for byte. When your backend reaches the mock as 
 services:
   oidc:
     image: curroya/oauth2-mock
-    ports: ["5556:5556"]
+    ports: ["127.0.0.1:5556:5556"]
     environment:
       ISSUER: http://oidc:5556
       BROWSER_BASE_URL: http://localhost:5556
@@ -129,8 +134,6 @@ Each email is a stable identity, so give every parallel worker its own address. 
 - Refresh tokens, `client_credentials`, `userinfo` and logout.
 - More than one client.
 - `plain` PKCE or flows without PKCE.
-
-This is a test fixture: never expose it to a network you do not control.
 
 ## Development
 
