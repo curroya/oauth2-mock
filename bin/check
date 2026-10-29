@@ -1,0 +1,53 @@
+#!/bin/sh
+# Every CI check, in CI's order, inside Docker so nothing is installed on the host.
+#
+# Usage:
+#   bin/check
+
+set -eu
+
+REPO_ROOT=$(cd "$(dirname -- "$0")/.." && pwd)
+TOOLS_IMAGE=oauth2-mock-tools
+
+current_step=''
+
+report_failure() {
+  status=$?
+  if [ "$status" -ne 0 ] && [ -n "$current_step" ]; then
+    printf '\n==> FAILED: %s\n' "$current_step" >&2
+  fi
+}
+trap report_failure EXIT
+
+build_tools_image() {
+  docker build -q -t "$TOOLS_IMAGE" -f "$REPO_ROOT/docker/tools.Dockerfile" "$REPO_ROOT/docker" >/dev/null
+}
+
+in_rust() {
+  docker run --rm \
+    -v "$REPO_ROOT":/app \
+    -v oauth2-mock-cargo:/usr/local/cargo/registry \
+    -v oauth2-mock-target:/app/target \
+    -e CARGO_TERM_COLOR=always \
+    -w /app "$TOOLS_IMAGE" sh -c "$1"
+}
+
+step() {
+  current_step=$1
+  shift
+  printf '\n==> %s\n' "$current_step"
+  "$@"
+}
+
+step 'tools image'  build_tools_image
+step 'cargo fmt'    in_rust 'cargo fmt --all -- --check'
+step 'cargo clippy' in_rust 'cargo clippy --all-targets -- -D warnings'
+step 'cargo nextest' in_rust 'cargo nextest run --all-targets'
+step 'cargo deny'   in_rust 'cargo deny check advisories sources'
+step 'review dates' "$REPO_ROOT/bin/check-review-dates" "$REPO_ROOT/deny.toml"
+step 'actionlint'   docker run --rm -v "$REPO_ROOT":/repo -w /repo rhysd/actionlint:1.7.7 -color=false
+step 'zizmor'       docker run --rm -v "$REPO_ROOT":/repo -w /repo ghcr.io/zizmorcore/zizmor:1.16.3 --offline .github/workflows
+step 'docker build' docker build -q -t oauth2-mock:check "$REPO_ROOT"
+
+current_step=''
+printf '\n==> all checks passed\n'

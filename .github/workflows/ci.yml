@@ -1,0 +1,96 @@
+name: ci
+
+on:
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  advisories:
+    name: cargo deny
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037 # v2.87.32
+        with:
+          tool: cargo-deny@0.20.2
+          fallback: none
+
+      - name: Advisories and sources
+        run: cargo deny check advisories sources
+
+      - name: Ignore entries are within their review date
+        run: bin/check-review-dates deny.toml
+
+  workflows:
+    name: actionlint · zizmor
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: actionlint
+        run: docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7 -color=false
+
+      - name: zizmor
+        run: docker run --rm -v "$PWD":/repo -w /repo ghcr.io/zizmorcore/zizmor:1.16.3 --offline .github/workflows
+
+  checks:
+    name: fmt · clippy · tests
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037 # v2.87.32
+        with:
+          tool: cargo-nextest@0.9.146
+          fallback: none
+
+      - name: Formatting
+        run: cargo fmt --all -- --check
+
+      - name: Lints
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo nextest run --all-targets --profile ci
+
+  image:
+    name: docker build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the release image
+        run: docker build -t oauth2-mock:ci .
+
+      - name: The image serves discovery
+        run: |
+          docker run -d --name oauth2-mock -p 5556:5556 oauth2-mock:ci
+          for _ in $(seq 1 20); do
+            curl -sf http://localhost:5556/.well-known/openid-configuration && exit 0
+            sleep 1
+          done
+          docker logs oauth2-mock
+          exit 1

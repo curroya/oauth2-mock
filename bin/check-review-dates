@@ -1,0 +1,55 @@
+#!/bin/sh
+# Fails when an advisory ignore entry has no "review by YYYY-MM-DD" or its date has passed.
+#
+# Usage:
+#   bin/check-review-dates <ignore-file>...
+
+set -eu
+
+ADVISORY_ID='RUSTSEC-[0-9]{4}-[0-9]{4}|GHSA(-[0-9a-z]{4}){3}'
+REVIEW_DATE='review by [0-9]{4}-[0-9]{2}-[0-9]{2}'
+
+fail() {
+  printf '%s\n' "$1" >&2
+  exit 1
+}
+
+advisory_of() {
+  printf '%s\n' "$1" | grep -oE "$ADVISORY_ID" | head -n 1
+}
+
+review_date_of() {
+  printf '%s\n' "$1" | grep -oE "$REVIEW_DATE" | sed 's/^review by //'
+}
+
+describe_entry_problem() {
+  location=$1 entry=$2 today=$3
+  advisory=$(advisory_of "$entry")
+  review_date=$(review_date_of "$entry")
+  if [ -z "$review_date" ]; then
+    printf '%s: %s has no "review by YYYY-MM-DD"\n' "$location" "$advisory"
+    return
+  fi
+  if expr "$review_date" \< "$today" >/dev/null; then
+    printf '%s: %s was due for review on %s\n' "$location" "$advisory" "$review_date"
+  fi
+}
+
+list_file_problems() {
+  file=$1 today=$2
+  grep -nE "$ADVISORY_ID" "$file" | while IFS= read -r numbered_entry; do
+    describe_entry_problem "$file:${numbered_entry%%:*}" "${numbered_entry#*:}" "$today"
+  done
+}
+
+[ $# -gt 0 ] || fail 'usage: bin/check-review-dates <ignore-file>...'
+for file in "$@"; do
+  [ -f "$file" ] || fail "no such ignore file: $file"
+done
+
+today=$(date +%F)
+problems=$(for file in "$@"; do list_file_problems "$file" "$today"; done)
+
+[ -z "$problems" ] || fail "ignore entries to review:
+$problems"
+printf 'every ignore entry is within its review date\n'
