@@ -170,7 +170,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wr
   <nav class="top-links">
     <a class="optional" href="#quick-start">Quick start</a>
     <a class="optional" href="#configuration">Configuration</a>
-    <a class="repo-link" href="#">GitHub</a>
+    <a href="https://github.com/curro-ya/oauth2-mock">GitHub</a>
   </nav>
 </header>
 
@@ -186,7 +186,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wr
       </ul>
       <div class="actions">
         <a class="button primary" href="#quick-start">Quick start</a>
-        <a class="button repo-link" href="#">View on GitHub</a>
+        <a class="button" href="https://github.com/curro-ya/oauth2-mock">View on GitHub</a>
       </div>
     </div>
 
@@ -337,20 +337,12 @@ await page.getByRole('button', { name: 'Sign in' }).click()</code></pre>
 <footer>
   <div class="wrap">
     <span>A test fixture. Never expose it to a network you do not control.</span>
-    <a class="repo-link" href="#">Source on GitHub</a>
+    <a href="https://github.com/curro-ya/oauth2-mock">Source on GitHub</a>
   </div>
 </footer>
 
 <script>
 (() => {
-  const [owner] = location.hostname.split('.')
-  const [repository] = location.pathname.split('/').filter(Boolean)
-  const isGitHubPages = location.hostname.endsWith('.github.io') && repository
-  if (isGitHubPages) {
-    const repositoryUrl = `https://github.com/${owner}/${repository}`
-    document.querySelectorAll('.repo-link').forEach((link) => { link.href = repositoryUrl })
-  }
-
   const result = document.querySelector('.demo-result')
   const randomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), (byte) => byte.toString(36).padStart(2, '0')).join('').slice(0, 22)
 
