@@ -4,6 +4,8 @@
 
 A tiny OpenID Connect provider for local development and end-to-end tests: the authorization-code flow with PKCE, signed RS256 ID tokens, and a one-click sign-in page.
 
+Site: <https://oss.curroya.es/oauth2-mock/>
+
 | | oauth2-mock | Dex | mock-oauth2-server (JVM) |
 |---|---|---|---|
 | Image | ~52 MB | ~100 MB | ~350 MB |
