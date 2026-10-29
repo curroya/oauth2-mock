@@ -6,6 +6,12 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # Coupled to rsa 0.9 (digest 0.10, rand_core 0.6); drop both when rsa 0.10 is stable.
+      - dependency-name: sha2
+        versions: [">= 0.11"]
+      - dependency-name: rand
+        versions: [">= 0.9"]
     groups:
       cargo:
         patterns:
