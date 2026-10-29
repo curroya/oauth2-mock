@@ -157,6 +157,7 @@ bin/check
 |---|---|---|
 | `ci.yml` | Pull requests, and every `publish` run | cargo deny, fmt, clippy, tests, image build and smoke test |
 | `publish.yml` | Pushes to `main` | Runs `ci.yml`, then pushes `latest` and `sha-<commit>` for amd64 and arm64 to Docker Hub |
+| `dockerhub-description.yml` | Pushes to `main` that touch `DOCKERHUB.md` | Updates the Docker Hub overview and short description from `DOCKERHUB.md` |
 | `pages.yml` | Pushes to `main` that touch `site/` | Publishes `site/` to GitHub Pages |
 | Dependabot | Weekly | Cargo, GitHub Actions and Docker base image updates |
 
