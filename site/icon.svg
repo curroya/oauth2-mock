@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="oauth2-mock by CurroYa">
+  <rect width="512" height="512" rx="112" fill="#004E89" />
+  <g transform="translate(123.5 97) scale(1.325)">
+    <path d="M100 8C50 8 12 46 12 96C12 160 100 232 100 232S188 160 188 96C188 46 150 8 100 8Z" fill="#FFFFFF" />
+    <path d="M78 90V72a22 22 0 0 1 44 0V90" fill="none" stroke="#FF6B35" stroke-width="12" stroke-linecap="round" />
+    <path d="M72 86h56a8 8 0 0 1 8 8v42a8 8 0 0 1 -8 8h-56a8 8 0 0 1 -8 -8v-42a8 8 0 0 1 8 -8ZM96 120.9A8 8 0 1 1 104 120.9V130H96Z" fill="#FF6B35" fill-rule="evenodd" />
+  </g>
+</svg>
