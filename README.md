@@ -20,7 +20,7 @@ Site: <https://oss.curroya.es/oauth2-mock/>
 docker run --rm -p 5556:5556 -e USERS=alice@example.test,bob@example.test curroya/oauth2-mock
 ```
 
-Images for `linux/amd64` and `linux/arm64` are on [Docker Hub](https://hub.docker.com/r/curroya/oauth2-mock): `latest` follows `main`, and `sha-<commit>` pins one build.
+Images for `linux/amd64` and `linux/arm64` are on [Docker Hub](https://hub.docker.com/r/curroya/oauth2-mock): `latest` follows `main`, and `vX.Y.Z` pins a release (see [Releases](#releases)).
 
 Point your OIDC client at the issuer `http://localhost:5556`, with client id `local-client` and secret `local-secret`.
 
@@ -156,9 +156,32 @@ bin/check
 | Workflow | Runs on | Does |
 |---|---|---|
 | `ci.yml` | Pull requests, and every `publish` run | cargo deny, fmt, clippy, tests, image build and smoke test |
-| `publish.yml` | Pushes to `main` | Runs `ci.yml`, then pushes `latest` and `sha-<commit>` for amd64 and arm64 to Docker Hub |
+| `publish.yml` | Pushes to `main` | Runs `ci.yml`, computes the next version, pushes `latest` and `vX.Y.Z` for amd64 and arm64 to Docker Hub, then pushes the git tag and the GitHub Release |
 | `dockerhub-description.yml` | Pushes to `main` that touch `DOCKERHUB.md` | Updates the Docker Hub overview and short description from `DOCKERHUB.md` |
 | `pages.yml` | Pushes to `main` that touch `site/` | Publishes `site/` to GitHub Pages |
 | Dependabot | Weekly | Cargo, GitHub Actions and Docker base image updates |
 
 `bin/secure-repo` applies the GitHub settings once the repository is public: secret scanning with push protection, Dependabot alerts and fixes, private vulnerability reporting, approval for external contributors' workflow runs, required SHA pinning, the `dockerhub` environment limited to `main`, and a ruleset that requires a pull request with green checks on `main`.
+
+## Releases
+
+Every push to `main` that passes `ci.yml` is a release. `publish.yml` runs these jobs in order:
+
+| Job | Does |
+|---|---|
+| `ci` | The checks a pull request runs |
+| `version` | Reads the commits since the last `v*` tag and computes the next version; refuses any ref but `main` |
+| `image` | Refuses a version that is already tagged, then pushes `latest` and `vX.Y.Z` |
+| `release` | Pushes the tag and creates the GitHub Release, with one line per commit since the previous tag |
+
+- Only `release` can write to the repository, and it runs after the image is on Docker Hub.
+- A tag is immutable: re-running an older run fails at `image` instead of overwriting a newer release.
+- Pushes that queue behind a running release are folded into the next one.
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/); the subject or body of any commit since the last tag picks the bump:
+
+| Commit | Bump | Example |
+|---|---|---|
+| `!:` or `BREAKING CHANGE:` | Major | `feat!: drop USERS_FILE` |
+| `feat:` or `feat(<scope>):` | Minor | `feat(token): issue refresh tokens` |
+| Anything else | Patch | `fix: reject an empty login_hint` |
