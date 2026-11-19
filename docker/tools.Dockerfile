@@ -1,4 +1,4 @@
-FROM rust:1.99.0-slim-bookworm
+FROM rust:1.100.0-slim-bookworm
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates \
   && rm -rf /var/lib/apt/lists/*
